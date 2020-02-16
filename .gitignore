@@ -63,3 +63,4 @@ typings/
 \.idea/
 
 upload/
+dist/
