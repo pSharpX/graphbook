@@ -64,6 +64,19 @@ export default function resolver() {
             ]
           });
         });
+      },
+      chat(root, { chatId }, context) {
+        return Chat.findByPk(chatId, {
+          include: [
+            {
+              model: User,
+              required: true
+            },
+            {
+              model: Message
+            }
+          ]
+        });
       }
     },
     RootMutation: {
@@ -77,6 +90,28 @@ export default function resolver() {
             return Promise.all([newPost.setUser(userRow.id)]).then(
               () => newPost
             );
+          });
+        });
+      },
+      addChat(root, { chat }, context) {
+        logger.log({ level: "info", message: "Chat was created !" });
+        return Chat.create().then(newChat => {
+          return Promise.all([newChat.setUsers(chat.users)]).then(
+            () => newChat
+          );
+        });
+      },
+      addMessage(root, { message }, context) {
+        logger.log({ level: "info", message: "Message was created !" });
+        return User.findAll().then(users => {
+          const userRow = users[0];
+          return Message.create({
+            ...message
+          }).then(newMessage => {
+            return Promise.all([
+              newMessage.setUser(userRow.id),
+              newMessage.setChat(message.chatId)
+            ]).then(() => newMessage);
           });
         });
       }
