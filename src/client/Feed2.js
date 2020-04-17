@@ -63,6 +63,19 @@ export default class Feed2 extends Component {
               data.posts.unshift(addPost);
               store.writeQuery({ query: GET_POSTS, data });
             }}
+            optimisticResponse={{
+              __typename: "mutation",
+              addPost: {
+                __typename: "Post",
+                text: postContent,
+                id: -1,
+                user: {
+                  __typename: "User",
+                  username: "Loading...",
+                  avatar: "/public/loading.gif",
+                },
+              },
+            }}
             mutation={ADD_POST}
           >
             {(addPost) => (
@@ -78,13 +91,16 @@ export default class Feed2 extends Component {
           </Mutation>
         </div>
         <div className="feed">
-          <Query query={GET_POSTS}>
+          <Query pollInterval={5000} query={GET_POSTS}>
             {({ loading, error, data }) => {
               if (loading) return "Loading...";
               if (error) return error.message;
               const { posts } = data;
               return posts.map((post, i) => (
-                <div key={post.id} className="post">
+                <div
+                  key={post.id}
+                  className={"post" + (post.id < 0 ? " optimistic" : "")}
+                >
                   <div className="header">
                     <img src={post.user.avatar} />
                     <h2>{post.user.username}</h2>
