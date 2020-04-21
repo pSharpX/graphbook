@@ -20,6 +20,7 @@ type Message {
 
 type Chat {
     id: Int
+    lastMessage: Message
     messages: [Message]
     users: [User]
 }

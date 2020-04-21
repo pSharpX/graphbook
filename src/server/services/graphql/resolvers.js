@@ -10,22 +10,27 @@ export default function resolver() {
       },
       chat(message, args, context) {
         return message.getChat();
-      }
+      },
     },
     Chat: {
+      lastMessage(chat, args, context) {
+        return chat
+          .getMessages({ limit: 1, order: [["id", "DESC"]] })
+          .then((message) => message[0]);
+      },
       messages(chat, args, context) {
         return chat.getMessages({ order: [["id", "ASC"]] });
       },
       users(chat, args, context) {
         return chat.getUsers();
-      }
+      },
     },
     RootQuery: {
       posts(root, args, context) {
         return Post.findAll({ order: [["createdAt", "DESC"]] });
       },
       chats(root, args, context) {
-        return User.findAll().then(users => {
+        return User.findAll().then((users) => {
           if (!users.length) return [];
           const userRow = users[0];
           return Chat.findAll({
@@ -35,14 +40,14 @@ export default function resolver() {
                 required: true,
                 through: {
                   where: {
-                    userId: userRow.id
-                  }
-                }
+                    userId: userRow.id,
+                  },
+                },
               },
               {
-                model: Message
-              }
-            ]
+                model: Message,
+              },
+            ],
           });
         });
       },
@@ -84,24 +89,24 @@ export default function resolver() {
       },
       addMessage(root, { message }, context) {
         logger.log({ level: "info", message: "Message was created !" });
-        return User.findAll().then(users => {
+        return User.findAll().then((users) => {
           const userRow = users[0];
           return Message.create({
-            ...message
-          }).then(newMessage => {
+            ...message,
+          }).then((newMessage) => {
             return Promise.all([
               newMessage.setUser(userRow.id),
-              newMessage.setChat(message.chatId)
+              newMessage.setChat(message.chatId),
             ]).then(() => newMessage);
           });
         });
-      }
+      },
     },
     Post: {
       user(post, args, context) {
         return post.getUser();
-      }
-    }
+      },
+    },
   };
   return resolvers;
 }
