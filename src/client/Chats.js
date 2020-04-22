@@ -44,6 +44,9 @@ const ADD_MESSAGE = gql`
     addMessage(message: $message) {
       id
       text
+      user {
+        id
+      }
     }
   }
 `;
@@ -51,6 +54,7 @@ const ADD_MESSAGE = gql`
 export default class Chats extends Component {
   state = {
     openChats: [],
+    textInputs: {},
   };
 
   usernamesToString = (users) => {
@@ -71,25 +75,48 @@ export default class Chats extends Component {
   openChat = (chatId) => {
     return () => {
       var openChats = this.state.openChats.slice();
+      var textInputs = Object.assign({}, this.state.textInputs);
       if (openChats.indexOf(chatId) === -1) {
         if (openChats.length > 2) openChats = openChats.slice(1);
         openChats.push(chatId);
+        textInputs[chatId] = "";
       }
-      this.setState({ openChats });
+      this.setState({ openChats, textInputs });
     };
   };
 
   closeChat = (chatId) => {
     return () => {
       var openChats = this.state.openChats.slice();
+      var textInputs = Object.assign({}, this.state.textInputs);
       const index = openChats.indexOf(chatId);
       openChats.splice(index, 1);
-      this.setState({ openChats });
+      delete textInputs[chatId];
+      this.setState({ openChats, textInputs });
     };
   };
 
+  onChangeChatInput = (chatId) => (event) => {
+    event.preventDefault();
+    var textInputs = Object.assign({}, this.state.textInputs);
+    textInputs[chatId] = event.target.value;
+    this.setState({ textInputs });
+  };
+
+  handleKeyPress = (chatId, addMessage) => (event) => {
+    var textInputs = Object.assign({}, this.state.textInputs);
+    if (event.key == "Enter" && textInputs[chatId]) {
+      addMessage({
+        variables: { message: { text: textInputs[chatId], chatId } },
+      }).then(() => {
+        textInputs[chatId] = "";
+        this.setState({ textInputs });
+      });
+    }
+  };
+
   render() {
-    const { openChats } = this.state;
+    const { openChats, textInputs } = this.state;
     return (
       <div className="wrapper">
         <div className="chats">
@@ -162,6 +189,35 @@ export default class Chats extends Component {
                         </div>
                       ))}
                     </div>
+                    <Mutation
+                      update={(store, { data: { addMessage } }) => {
+                        const data = store.readQuery({
+                          query: GET_CHAT,
+                          variables: { chatId: chat.id },
+                        });
+                        data.chat.messages.push(addMessage);
+                        store.writeQuery({
+                          query: GET_CHAT,
+                          variables: { chatId: chat.id },
+                          data,
+                        });
+                      }}
+                      mutation={ADD_MESSAGE}
+                    >
+                      {(addMessage) => (
+                        <div className="input">
+                          <input
+                            type="text"
+                            value={textInputs[chat.id]}
+                            onChange={this.onChangeChatInput(chat.id)}
+                            onKeyPress={this.handleKeyPress(
+                              chat.id,
+                              addMessage
+                            )}
+                          />
+                        </div>
+                      )}
+                    </Mutation>
                   </div>
                 );
               }}

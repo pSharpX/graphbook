@@ -214,3 +214,14 @@ form[type=submit] {
     right: 0;
     top: 0;
 }
+
+/* TextInput Chats styles */
+.chatWindow .input input {
+    width: calc(100% - 4px);
+    border: none;
+    padding: 2px;
+}
+
+.chatWindow .input input:focus {
+    outline: none;
+}
