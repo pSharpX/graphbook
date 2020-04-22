@@ -29,6 +29,24 @@ export default function resolver() {
       posts(root, args, context) {
         return Post.findAll({ order: [["createdAt", "DESC"]] });
       },
+      postsFeed(root, { page, limit }, context) {
+        var skip = 0;
+
+        if (page && limit) {
+          skip = page * limit;
+        }
+        var query = {
+          order: [["createdAt", "DESC"]],
+          offset: skip,
+        };
+
+        if (limit) {
+          query.limit = limit;
+        }
+        return {
+          posts: Post.findAll(query),
+        };
+      },
       chats(root, args, context) {
         return User.findAll().then((users) => {
           if (!users.length) return [];
@@ -56,32 +74,43 @@ export default function resolver() {
           include: [
             {
               model: User,
-              required: true
+              required: true,
             },
             {
-              model: Message
-            }
-          ]
+              model: Message,
+            },
+          ],
         });
-      }
+      },
     },
     RootMutation: {
       addPost(root, { post }, context) {
-        logger.log({ level: "info", message: "Post was created !" });
-        return User.findAll().then(users => {
+        logger.log({ level: "info", message: "Post will be created !" });
+        return User.findAll().then((users) => {
           const userRow = users[0];
           return Post.create({
-            ...post
-          }).then(newPost => {
-            return Promise.all([newPost.setUser(userRow.id)]).then(
-              () => newPost
-            );
+            ...post,
+          }).then((newPost) => {
+            logger.log({ level: "info", message: "Post was created !" });
+            return new Promise((resolve, reject) => {
+              setTimeout(() => {
+                resolve();
+              }, 5000);
+            }).then(() => {
+              return Promise.all([newPost.setUser(userRow.id)]).then(
+                () => newPost
+              );
+            });
+
+            // return Promise.all([newPost.setUser(userRow.id)]).then(
+            //   () => newPost
+            // );
           });
         });
       },
       addChat(root, { chat }, context) {
         logger.log({ level: "info", message: "Chat was created !" });
-        return Chat.create().then(newChat => {
+        return Chat.create().then((newChat) => {
           return Promise.all([newChat.setUsers(chat.users)]).then(
             () => newChat
           );
