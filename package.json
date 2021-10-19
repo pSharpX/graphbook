@@ -9,7 +9,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "client": "webpack-dev-server --devtool inline-source-map --hot --config webpack.client.config.js",
     "client:build": "webpack --config webpack.client.build.config.js",
-    "server": "nodemon --exec babel-node --plugins require-context-hook --watch src/server src/server/index.js"
+    "server": "nodemon --exec babel-node --plugins require-context-hook --watch src/server src/server/index.js",
+    "server:build": "webpack --config webpack.server.build.config.js",
+    "build": "npm run client:build && npm run server:build",
+    "server:production": "node dist/server/bundle.js"
   },
   "author": "Christian Rivera",
   "license": "ISC",
@@ -47,6 +50,7 @@
     "@babel/plugin-proposal-function-sent": "^7.8.3",
     "@babel/plugin-proposal-numeric-separator": "^7.8.3",
     "@babel/plugin-proposal-throw-expressions": "^7.8.3",
+    "@babel/plugin-transform-runtime": "^7.15.8",
     "@babel/preset-env": "^7.8.4",
     "@babel/preset-react": "^7.8.3",
     "babel-eslint": "^10.0.3",
@@ -68,6 +72,7 @@
     "webpack": "^4.41.5",
     "webpack-bundle-analyzer": "^3.6.0",
     "webpack-cli": "^3.3.10",
-    "webpack-dev-server": "^3.10.1"
+    "webpack-dev-server": "^3.10.1",
+    "webpack-node-externals": "^3.0.0"
   }
 }
