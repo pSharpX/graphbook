@@ -6,6 +6,8 @@ import { InMemoryCache } from "apollo-cache-inmemory";
 
 import gql from "graphql-tag";
 
+const port = location.port ? ':'+location.port: '';
+
 const client = new ApolloClient({
   link: ApolloLink.from([
     onError(({ graphQLErrors, networkError }) => {
@@ -19,7 +21,7 @@ const client = new ApolloClient({
       }
     }),
     new HttpLink({
-      uri: "http://localhost:8000/graphql"
+      uri: location.protocol + '//' + location.hostname + port + '/graphql'
     })
   ]),
   cache: new InMemoryCache()
